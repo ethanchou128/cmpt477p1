@@ -1,20 +1,8 @@
 package sat;
 
-import com.microsoft.z3.IntExpr;
-import com.microsoft.z3.BoolExpr;
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Model;
-import com.microsoft.z3.Solver;
-import com.microsoft.z3.Status;
-import com.microsoft.z3.Z3Exception;
+import com.microsoft.z3.*;
 
-public class GraphColoring {
-
-    // public static void main(String[] args) {
-    //     String inPath = args[0];
-    //     String outPath = args[1];
-    //     throw new RuntimeException("To be implemented");
-    // }
+public class TestZ3Class {
     public static void main(String[] args) {
         try {
             // Create a Z3 context
@@ -25,7 +13,7 @@ public class GraphColoring {
             IntExpr y = ctx.mkIntConst("y");
 
             // Build constraints
-            BoolExpr constraint1 = ctx.mkGt(ctx.mkAdd(x, y), ctx.mkInt(3)); // x + y > 5
+            BoolExpr constraint1 = ctx.mkGt(ctx.mkAdd(x, y), ctx.mkInt(5)); // x + y > 5
             BoolExpr constraint2 = ctx.mkLt(x, ctx.mkInt(3));               // x < 3
 
             // Create solver and add constraints
