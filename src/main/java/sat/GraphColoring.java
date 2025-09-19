@@ -8,6 +8,9 @@ import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
 import com.microsoft.z3.Z3Exception;
 
+import java.io.*;
+import java.util.*;
+
 public class GraphColoring {
 
     // public static void main(String[] args) {
@@ -43,9 +46,47 @@ public class GraphColoring {
                 System.out.println("UNSAT");
             }
 
+            String inPath = args[0];
+            String outPath = args[1];
+            System.out.println(inPath);
+            System.out.println(outPath);
+            
+            // start the process of reading each of the nodes.
+            List<Edge> edges = new ArrayList<>();
+            try (Scanner scanner = new Scanner(new File(inPath))) {
+                // the first row of the input can be assumed to be the number of nodes and colours.
+                int numVertices = scanner.nextInt();
+                int numColours = scanner.nextInt();
+
+                while (scanner.hasNextInt()) {
+                    int newU = scanner.nextInt();
+                    int newV = scanner.nextInt();
+                    Edge newEdge = new Edge(newU, newV);
+                    edges.add(newEdge);
+                }
+            } catch (FileNotFoundException e) {
+                System.err.println("File not found: " + inPath);
+            }
+            System.out.println(edges);
+
             ctx.close();
         } catch (Z3Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static class Edge {
+        public final int u;
+        public final int v;
+
+        public Edge(int u, int v) {
+            this.u = u;
+            this.v = v;
+        }
+
+        @Override
+        public String toString() {
+            return u + " - " + v;
         }
     }
 }
