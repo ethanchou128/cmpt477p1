@@ -50,13 +50,16 @@ public class GraphColoring {
             String outPath = args[1];
             System.out.println(inPath);
             System.out.println(outPath);
+
+            int numVertices = 0;
+            int numColours = 0;
             
             // start the process of reading each of the nodes.
             List<Edge> edges = new ArrayList<>();
             try (Scanner scanner = new Scanner(new File(inPath))) {
                 // the first row of the input can be assumed to be the number of nodes and colours.
-                int numVertices = scanner.nextInt();
-                int numColours = scanner.nextInt();
+                numVertices = scanner.nextInt();
+                numColours = scanner.nextInt();
 
                 while (scanner.hasNextInt()) {
                     int newU = scanner.nextInt();
@@ -68,6 +71,25 @@ public class GraphColoring {
                 System.err.println("File not found: " + inPath);
             }
             System.out.println(edges);
+
+            // declare the boolean variable array that will correspond to color(v) = c_x.
+            IntExpr[] colours = new IntExpr[numVertices + 1];
+
+            // add constraints for each of the vertices; ensuring the colour is 1 <= v <= M
+            for (int i = 1; i <= numVertices; i++) {
+                colours[i] = ctx.mkIntConst("colour_" + i);
+                BoolExpr colourNumberConstraint = ctx.mkAnd(
+                    ctx.mkGe(colours[i], ctx.mkInt(1)),
+                    ctx.mkLe(colours[i], ctx.mkInt(numColours))
+                );
+                solver.add(colourNumberConstraint);
+            }
+
+            // add constraints for each edge to ensure the vertices which they are connecting are not the same colour.
+            for (Edge edge : edges) {
+                BoolExpr edgeColourConstraint = ctx.mkNot(ctx.mkEq(colours[edge.u], colours[edge.v]));
+                solver.add(edgeColourConstraint);
+            }
 
             ctx.close();
         } catch (Z3Exception e) {
