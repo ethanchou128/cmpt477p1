@@ -13,38 +13,11 @@ import java.util.*;
 
 public class GraphColoring {
 
-    // public static void main(String[] args) {
-    //     String inPath = args[0];
-    //     String outPath = args[1];
-    //     throw new RuntimeException("To be implemented");
-    // }
     public static void main(String[] args) {
         try {
-            // Create a Z3 context
+            // Create a Z3 context and solver.
             Context ctx = new Context();
-
-            // Declare integer variables
-            IntExpr x = ctx.mkIntConst("x");
-            IntExpr y = ctx.mkIntConst("y");
-
-            // Build constraints
-            BoolExpr constraint1 = ctx.mkGt(ctx.mkAdd(x, y), ctx.mkInt(3)); // x + y > 5
-            BoolExpr constraint2 = ctx.mkLt(x, ctx.mkInt(3));               // x < 3
-
-            // Create solver and add constraints
             Solver solver = ctx.mkSolver();
-            solver.add(constraint1);
-            solver.add(constraint2);
-
-            // Check satisfiability
-            if (solver.check() == Status.SATISFIABLE) {
-                System.out.println("SAT");
-                Model model = solver.getModel();
-                System.out.println("x = " + model.evaluate(x, false));
-                System.out.println("y = " + model.evaluate(y, false));
-            } else {
-                System.out.println("UNSAT");
-            }
 
             String inPath = args[0];
             String outPath = args[1];
@@ -72,23 +45,39 @@ public class GraphColoring {
             }
             System.out.println(edges);
 
-            // declare the boolean variable array that will correspond to color(v) = c_x.
-            IntExpr[] colours = new IntExpr[numVertices + 1];
+            // declare the array that will correspond to color(v) = c_x.
+            IntExpr[] colour = new IntExpr[numVertices + 1];
 
-            // add constraints for each of the vertices; ensuring the colour is 1 <= v <= M
+            // add constraints for each of the vertices; ensuring the colour is 1 <= v <= M.
+            // this ensures that each vertex from 1 <= i <= n has a colour (if there is no colour, their colour will be null)
             for (int i = 1; i <= numVertices; i++) {
-                colours[i] = ctx.mkIntConst("colour_" + i);
+                colour[i] = ctx.mkIntConst("colour_" + i);
                 BoolExpr colourNumberConstraint = ctx.mkAnd(
-                    ctx.mkGe(colours[i], ctx.mkInt(1)),
-                    ctx.mkLe(colours[i], ctx.mkInt(numColours))
+                    ctx.mkGe(colour[i], ctx.mkInt(1)),
+                    ctx.mkLe(colour[i], ctx.mkInt(numColours))
                 );
                 solver.add(colourNumberConstraint);
             }
 
             // add constraints for each edge to ensure the vertices which they are connecting are not the same colour.
             for (Edge edge : edges) {
-                BoolExpr edgeColourConstraint = ctx.mkNot(ctx.mkEq(colours[edge.u], colours[edge.v]));
+                BoolExpr edgeColourConstraint = ctx.mkNot(ctx.mkEq(colour[edge.u], colour[edge.v]));
                 solver.add(edgeColourConstraint);
+            }
+
+            if (solver.check() == Status.SATISFIABLE) {
+                System.out.println("SAT");
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(outPath))) {
+                    // bw.write("joe");
+                    // bw.newLine();
+                    // bw.write("mama");
+                    for (int i = 1; i <= numVertices; i++) {
+                        bw.write(i + " " + colour[i]);
+                        bw.newLine();
+                    }
+                } catch (IOException e) {
+                    System.out.println("womp womp");
+                }
             }
 
             ctx.close();
