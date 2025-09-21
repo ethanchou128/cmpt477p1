@@ -50,7 +50,7 @@ public class GraphColoring {
             IntExpr[] colour = new IntExpr[numVertices + 1];
 
             // add constraints for each of the vertices; ensuring the colour is 1 <= v <= M. this means
-            // that each vertex from 1 <= i <= n has a colour (if there is no colour, their colour will be null)
+            // that each vertex from 1 <= i <= n has a colour (if there is no colour, their colour will be null/0)
             for (int i = 1; i <= numVertices; i++) {
                 colour[i] = ctx.mkIntConst("colour_" + i);
 
@@ -63,8 +63,8 @@ public class GraphColoring {
             }
 
             // add constraints for each edge to ensure the vertices which they are connecting are not the same colour.
+            // not(colour(u) <-> colour(v))
             for (Edge edge : edges) {
-                // (colour(u) != colour(v))
                 BoolExpr edgeColourConstraint = ctx.mkNot(ctx.mkEq(colour[edge.getU()], colour[edge.getV()]));
                 solver.add(edgeColourConstraint);
             }
