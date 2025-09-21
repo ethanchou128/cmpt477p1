@@ -2,6 +2,7 @@ package sat;
 
 import com.microsoft.z3.IntExpr;
 import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Expr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Model;
 import com.microsoft.z3.Solver;
@@ -21,8 +22,6 @@ public class GraphColoring {
 
             String inPath = args[0];
             String outPath = args[1];
-            System.out.println(inPath);
-            System.out.println(outPath);
 
             int numVertices = 0;
             int numColours = 0;
@@ -67,19 +66,26 @@ public class GraphColoring {
 
             if (solver.check() == Status.SATISFIABLE) {
                 System.out.println("SAT");
-                try (BufferedWriter bw = new BufferedWriter(new FileWriter(outPath))) {
-                    // bw.write("joe");
-                    // bw.newLine();
-                    // bw.write("mama");
+                Model model = solver.getModel();
+                try {
+                    FileWriter fw = new FileWriter(outPath);
                     for (int i = 1; i <= numVertices; i++) {
-                        bw.write(i + " " + colour[i]);
-                        bw.newLine();
+                        Expr colourVal = model.getConstInterp(colour[i]);
+                        fw.write(i + " " + colourVal + "\n");
                     }
+                    fw.close();
                 } catch (IOException e) {
-                    System.out.println("womp womp");
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    FileWriter fw = new FileWriter(outPath);
+                    fw.write("No Solution\n");
+                    fw.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-
             ctx.close();
         } catch (Z3Exception e) {
             e.printStackTrace();
