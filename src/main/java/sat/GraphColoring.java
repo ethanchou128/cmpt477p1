@@ -40,17 +40,21 @@ public class GraphColoring {
                     edges.add(newEdge);
                 }
             } catch (FileNotFoundException e) {
-                System.err.println("File not found: " + inPath);
+                System.out.println("File not found: " + inPath);
+                e.printStackTrace();
             }
+
             System.out.println(edges);
 
             // declare the array that will correspond to color(v) = c_x.
             IntExpr[] colour = new IntExpr[numVertices + 1];
 
-            // add constraints for each of the vertices; ensuring the colour is 1 <= v <= M.
-            // this ensures that each vertex from 1 <= i <= n has a colour (if there is no colour, their colour will be null)
+            // add constraints for each of the vertices; ensuring the colour is 1 <= v <= M. this means
+            // that each vertex from 1 <= i <= n has a colour (if there is no colour, their colour will be null)
             for (int i = 1; i <= numVertices; i++) {
                 colour[i] = ctx.mkIntConst("colour_" + i);
+
+                // (colour(i) >= 1) /\ (colour(i) <= numColours)
                 BoolExpr colourNumberConstraint = ctx.mkAnd(
                     ctx.mkGe(colour[i], ctx.mkInt(1)),
                     ctx.mkLe(colour[i], ctx.mkInt(numColours))
@@ -60,7 +64,8 @@ public class GraphColoring {
 
             // add constraints for each edge to ensure the vertices which they are connecting are not the same colour.
             for (Edge edge : edges) {
-                BoolExpr edgeColourConstraint = ctx.mkNot(ctx.mkEq(colour[edge.u], colour[edge.v]));
+                // (colour(u) != colour(v))
+                BoolExpr edgeColourConstraint = ctx.mkNot(ctx.mkEq(colour[edge.getU()], colour[edge.getV()]));
                 solver.add(edgeColourConstraint);
             }
 
@@ -93,12 +98,20 @@ public class GraphColoring {
     }
 
     public static class Edge {
-        public final int u;
-        public final int v;
+        private final int u;
+        private final int v;
 
         public Edge(int u, int v) {
             this.u = u;
             this.v = v;
+        }
+
+        private int getU() {
+            return this.u;
+        }
+
+        private int getV() {
+            return this.v;
         }
 
         @Override
