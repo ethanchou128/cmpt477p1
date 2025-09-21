@@ -29,7 +29,7 @@ public class GraphColoring {
             // start the process of reading each of the nodes.
             List<Edge> edges = new ArrayList<>();
             try (Scanner scanner = new Scanner(new File(inPath))) {
-                // the first row of the input can be assumed to be the number of nodes and colours.
+                // the first row of the input is assumed to be the number of nodes and colours.
                 numVertices = scanner.nextInt();
                 numColours = scanner.nextInt();
 
@@ -68,28 +68,26 @@ public class GraphColoring {
                 BoolExpr edgeColourConstraint = ctx.mkNot(ctx.mkEq(colour[edge.getU()], colour[edge.getV()]));
                 solver.add(edgeColourConstraint);
             }
-
+            
+            // start the logic to check for satisfiability, and the writing to output.txt
+            boolean isSatisfied = false;
             if (solver.check() == Status.SATISFIABLE) {
-                System.out.println("SAT");
-                Model model = solver.getModel();
-                try {
-                    FileWriter fw = new FileWriter(outPath);
+                isSatisfied = true;
+            }
+            try {
+                FileWriter fw = new FileWriter(outPath);
+                if (isSatisfied) {
+                    Model model = solver.getModel();
                     for (int i = 1; i <= numVertices; i++) {
                         Expr colourVal = model.getConstInterp(colour[i]);
                         fw.write(i + " " + colourVal + "\n");
                     }
-                    fw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                try {
-                    FileWriter fw = new FileWriter(outPath);
+                } else {
                     fw.write("No Solution\n");
-                    fw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
+                fw.close(); 
+            } catch (IOException e) {
+                e.printStackTrace();
             }
             ctx.close();
         } catch (Z3Exception e) {
